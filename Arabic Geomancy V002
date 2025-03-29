@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحات الرمل التفاعلية</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        /* تنسيق مربع السؤال والتاريخ */
+        .question-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .question-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .date-time-display {
+            font-size: 16px;
+            color: #666;
+            text-align: left;
+            margin-top: 10px;
+        }
+        
+        .boards-container {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        .board {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 300px;
+            max-width: 450px;
+        }
+        
+        .board-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .cell {
+            border: 1px solid #ccc;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        /* تنسيق الأشكال حسب العناصر - الإطارات */
+        /* الأشكال النارية (1-الجودلة، 2-الأحيان، 9-النصرة الخارجة، 15-الجماعة) */
+        .fire-element {
+            border: 2px solid #FF0000;
+        }
+        
+        /* الأشكال الهوائية (3-العتبة الداخلة، 7-الحمرة، 11-الاجتماع، 16-القبض الداخل) */
+        .air-element {
+            border: 2px solid #A9A9A9; /* فضي غامق */
+        }
+        
+        /* الأشكال المائية (4-البياض، 6-العتبة الخارجة، 13-الطريق، 14-القبض الخارج) */
+        .water-element {
+            border: 2px solid #0000FF;
+        }
+        
+        /* الأشكال الترابية (5-نقي الخد، 8-الانكيس، 10-العقلة، 12-النصرة الداخلة) */
+        .earth-element {
+            border: 2px solid #8B4513; /* بني */
+        }
+        
+        /* تنسيق لون النقاط حسب العناصر */
+        .fire-dot {
+            background-color: #FF0000 !important; /* أحمر */
+        }
+        
+        .air-dot {
+            background-color: #A9A9A9 !important; /* فضي غامق */
+        }
+        
+        .water-dot {
+            background-color: #0000FF !important; /* أزرق */
+        }
+        
+        .earth-dot {
+            background-color: #8B4513 !important; /* بني */
+        }
+        
+        .cell-number {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .figure-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 70%;
+            width: 70%;
+            margin: auto;
+        }
+        
+        .dot-row {
+            display: flex;
+            justify-content: center;
+            margin: 2px 0;
+        }
+        
+        .dot {
+            width: 5px;
+            height: 5px;
+            background-color: black;
+            border-radius: 50%;
+            margin: 0 2px;
+        }
+        
+        select {
+            margin-top: 5px;
+            padding: 2px;
+            font-size: 12px;
+            width: 80%;
+            text-align: center;
+        }
+        
+        /* زر توليد لوحة باطن الرمل */
+        .generate-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .generate-button:hover {
+            background-color: #0056b3;
+        }
+        
+        /* زر حفظ اللوحات كصورة */
+        .save-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .save-button:hover {
+            background-color: #218838;
+        }
+        
+        /* تنسيق جدول الإحصائيات */
+        .statistics-container {
+            margin-top: 30px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            max-width: 800px; /* تقليل العرض الأقصى */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .statistics-title {
+            text-align: center;
+            font-size: 28px; /* تكبير حجم الخط */
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px; /* تقليل المسافة بين الأقسام */
+        }
+        
+        .statistics-section {
+            border: 1px solid #ddd; /* تقليل سمك الحدود */
+            border-radius: 5px;
+            padding: 8px; /* تقليل التباعد الداخلي */
+            background-color: #f9f9f9;
+        }
+        
+        .statistics-section h3 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 22px; /* تكبير حجم الخط ليكون مثل العناوين */
+            color: #333;
+            border-bottom: 1px solid #007bff;
+            padding-bottom: 5px;
+        }
+        
+        .statistics-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px; /* تقليل المسافة بين العناصر */
+            font-size: 20px; /* تكبير حجم الخط ليكون مثل العناوين */
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
+        
+        .statistics-item .label {
+            font-weight: normal;
+        }
+        
+        .statistics-item .value {
+            font-weight: bold;
+            color: #007bff;
+            min-width: 25px; /* تقليل العرض الأدنى */
+            text-align: center;
+            font-size: 22px; /* تكبير حجم الخط ليكون مثل العناوين */
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* تحسين التجاوب مع الشاشات الصغيرة */
+        @media (max-width: 1200px) {
+            .statistics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .boards-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .board {
+                min-width: 90%;
+                max-width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .statistics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .statistics-item {
+                font-size: 18px; /* الحفاظ على حجم الخط في الشاشات الصغيرة */
+            }
+            
+            .statistics-section h3 {
+                font-size: 20px; /* الحفاظ على حجم الخط في الشاشات الصغيرة */
+            }
+            
+            .statistics-title {
+                font-size: 24px; /* تقليل حجم الخط قليلاً في الشاشات الصغيرة */
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .cell {
+                min-height: 60px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .grid {
+                gap: 5px;
+            }
+            
+            .cell {
+                min-height: 50px;
+            }
+            
+            .dot {
+                width: 4px;
+                height: 4px;
+            }
+            
+            .statistics-item {
+                font-size: 16px; /* تقليل حجم الخط قليلاً في الشاشات الصغيرة جداً */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>لوحات الرمل التفاعلية</h1>
+    
+    <!-- مربع السؤال والتاريخ -->
+    <div class="question-container">
+        <input type="text" id="question-input" class="question-input" placeholder="اكتب سؤالك أو المطلوب هنا...">
+        <div class="date-time-display" id="date-time-display"></div>
+    </div>
+    
+    <div class="boards-container">
+        <div class="board" id="main-board">
+            <div class="board-title">لوحة الرمل الرئيسية</div>
+            <div class="grid"></div>
+        </div>
+        
+        <div class="board" id="secondary-board">
+            <div class="board-title">لوحة الرمل الفرعية</div>
+            <div class="grid"></div>
+        </div>
+        
+        <div class="board" id="inner-board">
+            <div class="board-title">لوحة باطن الرمل</div>
+            <div class="grid"></div>
+        </div>
+    </div>
+    
+    <button id="generate-inner-board" class="generate-button">توليد لوحة باطن الرمل</button>
+    <button id="save-as-image" class="save-button" style="display: none;">حفظ اللوحات كصورة</button>
+    
+    <!-- جدول الإحصائيات -->
+    <div class="statistics-container" id="statistics-container" style="display: none;">
+        <div class="statistics-title">إحصائيات اللوحة الفرعية</div>
+        <div class="statistics-grid">
+            <!-- قسم إحصائيات مجموع النقاط -->
+            <div class="statistics-section">
+                <h3>إحصائيات مجموع النقاط</h3>
+                <div class="statistics-item">
+                    <span class="label">مجموع النقاط المفردة:</span>
+                    <span class="value" id="total-single-dots">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">مجموع النقاط المزدوجة:</span>
+                    <span class="value" id="total-double-dots">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">المجموع الكلي للنقاط:</span>
+                    <span class="value" id="total-all-dots">0</span>
+                </div>
+            </div>
+            
+            <!-- قسم إحصائيات العناصر -->
+            <div class="statistics-section">
+                <h3>إحصائيات نقاط العناصر</h3>
+                <div class="statistics-item">
+                    <span class="label">عدد نقاط النار المفردة:</span>
+                    <span class="value" id="fire-points">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد نقاط الهواء المفردة:</span>
+                    <span class="value" id="air-points">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد نقاط الماء المفردة:</span>
+                    <span class="value" id="water-points">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد نقاط التراب المفردة:</span>
+                    <span class="value" id="earth-points">0</span>
+                </div>
+            </div>
+            
+            <!-- قسم إحصائيات أشكال العناصر -->
+            <div class="statistics-section">
+                <h3>إحصائيات أشكال العناصر</h3>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال النارية:</span>
+                    <span class="value" id="fire-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الهوائية:</span>
+                    <span class="value" id="air-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال المائية:</span>
+                    <span class="value" id="water-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الترابية:</span>
+                    <span class="value" id="earth-figures">0</span>
+                </div>
+            </div>
+            
+            <!-- قسم إحصائيات أنواع الأشكال -->
+            <div class="statistics-section">
+                <h3>إحصائيات أنواع الأشكال</h3>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الخارجة:</span>
+                    <span class="value" id="outer-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الداخلة:</span>
+                    <span class="value" id="inner-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال المنقلبة:</span>
+                    <span class="value" id="mobile-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الثابتة:</span>
+                    <span class="value" id="stable-figures">0</span>
+                </div>
+            </div>
+            
+            <!-- قسم إحصائيات السعد والنحس -->
+            <div class="statistics-section">
+                <h3>إحصائيات السعد والنحس</h3>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال السعيدة:</span>
+                    <span class="value" id="fortunate-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال النحيسة:</span>
+                    <span class="value" id="unfortunate-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الممتزجة سعد:</span>
+                    <span class="value" id="mixed-fortunate-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الممتزجة نحس:</span>
+                    <span class="value" id="mixed-unfortunate-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الممتزجة بين سعد ونحس:</span>
+                    <span class="value" id="mixed-figures">0</span>
+                </div>
+            </div>
+            
+            <!-- قسم إحصائيات الصدق والكذب -->
+            <div class="statistics-section">
+                <h3>إحصائيات الصدق والكذب</h3>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الصادقة:</span>
+                    <span class="value" id="truthful-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الكاذبة:</span>
+                    <span class="value" id="false-figures">0</span>
+                </div>
+            </div>
+            
+            <!-- قسم إحصائيات الجنس -->
+            <div class="statistics-section">
+                <h3>إحصائيات الجنس</h3>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال المذكرة:</span>
+                    <span class="value" id="masculine-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال المؤنثة:</span>
+                    <span class="value" id="feminine-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد الأشكال الخنثى:</span>
+                    <span class="value" id="neutral-figures">0</span>
+                </div>
+            </div>
+            
+            <!-- قسم إحصائيات الكواكب -->
+            <div class="statistics-section">
+                <h3>إحصائيات الكواكب</h3>
+                <div class="statistics-item">
+                    <span class="label">عدد أشكال الشمس:</span>
+                    <span class="value" id="sun-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد أشكال القمر:</span>
+                    <span class="value" id="moon-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد أشكال المريخ:</span>
+                    <span class="value" id="mars-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد أشكال عطارد:</span>
+                    <span class="value" id="mercury-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد أشكال المشتري:</span>
+                    <span class="value" id="jupiter-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد أشكال الزهرة:</span>
+                    <span class="value" id="venus-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد أشكال زحل:</span>
+                    <span class="value" id="saturn-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد أشكال الرأس:</span>
+                    <span class="value" id="head-figures">0</span>
+                </div>
+                <div class="statistics-item">
+                    <span class="label">عدد أشكال الذنب:</span>
+                    <span class="value" id="tail-figures">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="copyright">
+        جميع الحقوق محفوظة &copy; 2025 | ali24028@gmail.com
+    </div>
+    
+    <!-- إضافة مكتبة html2canvas لتحويل اللوحات إلى صورة -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <script>
+        // تعريف أشكال الرمل مع خصائصها
+        const geomancyFigures = [
+            { 
+                pattern: [1, 1, 2, 1], 
+                element: 'fire',
+                type: 'mobile',
+                fortune: 'mixed-fortunate',
+                truth: 'truthful',
+                gender: 'neutral-masculine',
+                planet: 'mars'
+            }, // 1 - الجودلة
+            { 
+                pattern: [1, 2, 2, 2], 
+                element: 'fire',
+                type: 'outer',
+                fortune: 'fortunate',
+                truth: 'truthful',
+                gender: 'masculine',
+                planet: 'jupiter'
+            }, // 2 - الأحيان
+            { 
+                pattern: [2, 1, 1, 1], 
+                element: 'air',
+                type: 'inner',
+                fortune: 'fortunate',
+                truth: 'truthful',
+                gender: 'feminine',
+                planet: 'jupiter'
+            }, // 3 - العتبة الداخلة
+            { 
+                pattern: [2, 2, 1, 2], 
+                element: 'water',
+                type: 'mobile',
+                fortune: 'fortunate',
+                truth: 'truthful',
+                gender: 'feminine',
+                planet: 'moon'
+            }, // 4 - البياض
+            { 
+                pattern: [1, 2, 1, 1], 
+                element: 'earth',
+                type: 'mobile',
+                fortune: 'mixed-unfortunate',
+                truth: 'false',
+                gender: 'neutral-feminine',
+                planet: 'venus'
+            }, // 5 - نقي الخد
+            { 
+                pattern: [1, 1, 1, 2], 
+                element: 'water',
+                type: 'outer',
+                fortune: 'unfortunate',
+                truth: 'false',
+                gender: 'feminine',
+                planet: 'tail'
+            }, // 6 - العتبة الخارجة
+            { 
+                pattern: [2, 1, 2, 2], 
+                element: 'air',
+                type: 'mobile',
+                fortune: 'unfortunate',
+                truth: 'false',
+                gender: 'masculine',
+                planet: 'mars'
+            }, // 7 - الحمرة
+            { 
+                pattern: [2, 2, 2, 1], 
+                element: 'earth',
+                type: 'inner',
+                fortune: 'unfortunate',
+                truth: 'false',
+                gender: 'feminine',
+                planet: 'saturn'
+            }, // 8 - الانكيس
+            { 
+                pattern: [1, 1, 2, 2], 
+                element: 'fire',
+                type: 'outer',
+                fortune: 'fortunate',
+                truth: 'false',
+                gender: 'masculine',
+                planet: 'sun'
+            }, // 9 - النصرة الخارجة
+            { 
+                pattern: [1, 2, 2, 1], 
+                element: 'earth',
+                type: 'stable',
+                fortune: 'mixed-unfortunate',
+                truth: 'false',
+                gender: 'feminine',
+                planet: 'saturn'
+            }, // 10 - العقلة
+            { 
+                pattern: [2, 1, 1, 2], 
+                element: 'air',
+                type: 'stable',
+                fortune: 'mixed-fortunate',
+                truth: 'truthful',
+                gender: 'masculine',
+                planet: 'mercury'
+            }, // 11 - الاجتماع
+            { 
+                pattern: [2, 2, 1, 1], 
+                element: 'earth',
+                type: 'inner',
+                fortune: 'fortunate',
+                truth: 'truthful',
+                gender: 'feminine',
+                planet: 'venus'
+            }, // 12 - النصرة الداخلة
+            { 
+                pattern: [1, 1, 1, 1], 
+                element: 'water',
+                type: 'stable',
+                fortune: 'mixed-fortunate',
+                truth: 'truthful',
+                gender: 'masculine',
+                planet: 'moon'
+            }, // 13 - الطريق
+            { 
+                pattern: [1, 2, 1, 2], 
+                element: 'water',
+                type: 'outer',
+                fortune: 'unfortunate',
+                truth: 'false',
+                gender: 'masculine',
+                planet: 'head'
+            }, // 14 - القبض الخارج
+            { 
+                pattern: [2, 2, 2, 2], 
+                element: 'fire',
+                type: 'stable',
+                fortune: 'mixed',
+                truth: 'truthful',
+                gender: 'masculine',
+                planet: 'mercury'
+            }, // 15 - الجماعة
+            { 
+                pattern: [2, 1, 2, 1], 
+                element: 'air',
+                type: 'inner',
+                fortune: 'fortunate',
+                truth: 'false',
+                gender: 'feminine',
+                planet: 'sun'
+            }  // 16 - القبض الداخل
+        ];
+        
+        // متغير لتخزين التاريخ والوقت عند اكتمال اللوحة الفرعية
+        let capturedDateTime = null;
+        
+        // إضافة الأسماء العربية للأشكال
+        function addArabicNamesToFigures() {
+            // تعريف الأسماء العربية للأشكال وفقاً للترتيب التقليدي
+            const arabicNames = [
+                "الجودله", // PUER (1)
+                "الاحيان", // LAETITIA (2)
+                "عتبه داخل", // CAPUT DRACONIS (3)
+                "بياض", // ALBUS (4)
+                "نقي الخد", // PUELLA (5)
+                "عتبه خارجه", // CAUDA DRACONIS (6)
+                "الحمره", // RUBEUS (7)
+                "انكيس", // TRISTITIA (8)
+                "نصره خارجه", // FORTUNA MINOR (9)
+                "عقله", // CARCER (10)
+                "احتماع", // CONJUNCTIO (11)
+                "نصره داخل", // FORTUNA MAJOR (12)
+                "طريق", // VIA (13)
+                "قبضه خارج", // AMISSIO (14)
+                "جماعه", // POPULUS (15)
+                "قبضه داخل" // ACQUISITIO (16)
+            ];
+
+            // إضافة الأسماء العربية إلى مصفوفة الأشكال
+            for (let i = 0; i < geomancyFigures.length; i++) {
+                geomancyFigures[i].arabicName = arabicNames[i];
+            }
+        }
+        
+        // إنشاء عنصر شكل الرمل
+        function createFigureElement(pattern, figureIndex) {
+            const figureContainer = document.createElement('div');
+            figureContainer.className = 'figure-container';
+            
+            // إضافة خاصية data-figure-index لتتبع مؤشر الشكل
+            if (figureIndex !== undefined) {
+                figureContainer.dataset.figureIndex = figureIndex;
+            }
+            
+            // تحديد عنصر الشكل لتلوين النقاط
+            let elementClass = '';
+            if (figureIndex !== undefined) {
+                elementClass = geomancyFigures[figureIndex].element;
+            } else {
+                // البحث عن الشكل المطابق في مصفوفة الأشكال
+                for (let i = 0; i < geomancyFigures.length; i++) {
+                    if (patternsEqual(geomancyFigures[i].pattern, pattern)) {
+                        elementClass = geomancyFigures[i].element;
+                        break;
+                    }
+                }
+            }
+            
+            // إنشاء صفوف النقاط
+            for (let i = 0; i < pattern.length; i++) {
+                const dotRow = document.createElement('div');
+                dotRow.className = 'dot-row';
+                
+                // إضافة النقاط لكل صف
+                for (let j = 0; j < pattern[i]; j++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    
+                    // إضافة فئة لون العنصر للنقطة
+                    if (elementClass) {
+                        dot.classList.add(`${elementClass}-dot`);
+                    }
+                    
+                    dotRow.appendChild(dot);
+                }
+                
+                figureContainer.appendChild(dotRow);
+            }
+            
+            return figureContainer;
+        }
+
+        // تحديد فئة العنصر بناءً على نمط الشكل
+        function getElementClassByPattern(pattern) {
+            // البحث عن الشكل المطابق في مصفوفة الأشكال
+            for (let i = 0; i < geomancyFigures.length; i++) {
+                if (patternsEqual(geomancyFigures[i].pattern, pattern)) {
+                    // إرجاع فئة العنصر المناسبة
+                    return `${geomancyFigures[i].element}-element`;
+                }
+            }
+            
+            return '';
+        }
+
+        // إنشاء اللوحات الثلاث
+        function createBoards() {
+            const mainBoardGrid = document.querySelector('#main-board .grid');
+            const secondaryBoardGrid = document.querySelector('#secondary-board .grid');
+            const innerBoardGrid = document.querySelector('#inner-board .grid');
+            
+            // إنشاء خلايا اللوحات
+            for (let i = 0; i < 16; i++) {
+                // حساب رقم المربع (1-16)
+                const cellNumber = i + 1;
+                
+                // تحديد فئة العنصر للشكل
+                const elementClass = `${geomancyFigures[i].element}-element`;
+                
+                // إنشاء خلية للوحة الرئيسية
+                const mainCell = document.createElement('div');
+                mainCell.className = `cell ${elementClass}`;
+                mainCell.id = `main-cell-${cellNumber}`;
+                
+                // إضافة رقم المربع
+                const mainCellNumber = document.createElement('div');
+                mainCellNumber.className = 'cell-number';
+                mainCellNumber.textContent = cellNumber;
+                mainCell.appendChild(mainCellNumber);
+                
+                // إضافة الشكل للوحة الرئيسية
+                const figureElement = createFigureElement(geomancyFigures[i].pattern, i);
+                mainCell.appendChild(figureElement);
+                
+                mainBoardGrid.appendChild(mainCell);
+                
+                // إنشاء خلية للوحة الفرعية
+                const secondaryCell = document.createElement('div');
+                secondaryCell.className = 'cell'; // سيتم تحديد الفئة لاحقاً عند اختيار الشكل
+                secondaryCell.id = `secondary-cell-${cellNumber}`;
+                
+                // إضافة رقم المربع
+                const secondaryCellNumber = document.createElement('div');
+                secondaryCellNumber.className = 'cell-number';
+                secondaryCellNumber.textContent = cellNumber;
+                secondaryCell.appendChild(secondaryCellNumber);
+                
+                // إضافة قائمة منسدلة لمربعات الأمهات (1-4) في اللوحة الفرعية
+                if (i < 4) {
+                    const select = document.createElement('select');
+                    select.id = `select-${cellNumber}`;
+                    
+                    // إضافة خيار فارغ
+                    const emptyOption = document.createElement('option');
+                    emptyOption.value = '';
+                    emptyOption.textContent = 'اختر';
+                    select.appendChild(emptyOption);
+                    
+                    // إضافة خيارات الأشكال بأسمائها
+                    for (let figIndex = 0; figIndex < 16; figIndex++) {
+                        const option = document.createElement('option');
+                        option.value = figIndex;
+                        option.textContent = geomancyFigures[figIndex].arabicName;
+                        select.appendChild(option);
+                    }
+                    
+                    // إضافة حدث تغيير القائمة المنسدلة
+                    select.addEventListener('change', function() {
+                        const figureIndex = this.value;
+                        const figureContainer = secondaryCell.querySelector('.figure-container');
+                        
+                        // إزالة الشكل السابق إن وجد
+                        if (figureContainer) {
+                            figureContainer.remove();
+                        }
+                        
+                        // إضافة الشكل الجديد إذا تم اختيار شكل
+                        if (figureIndex !== '') {
+                            const figure = geomancyFigures[figureIndex];
+                            const newFigureElement = createFigureElement(figure.pattern, figureIndex);
+                            secondaryCell.insertBefore(newFigureElement, select); // إضافة الشكل قبل القائمة المنسدلة
+                            
+                            // تحديث فئة العنصر للخلية
+                            secondaryCell.className = `cell ${figure.element}-element`;
+                            
+                            // التحقق من اكتمال أشكال الأمهات وتوليد جميع الأشكال تلقائياً
+                            setTimeout(generateAllFigures, 100); // تأخير قصير لضمان اكتمال التحديث
+                        } else {
+                            // إعادة تعيين فئة الخلية إلى الافتراضية
+                            secondaryCell.className = 'cell';
+                        }
+                    });
+                    
+                    secondaryCell.appendChild(select);
+                }
+                
+                secondaryBoardGrid.appendChild(secondaryCell);
+                
+                // إنشاء خلية للوحة باطن الرمل
+                const innerCell = document.createElement('div');
+                innerCell.className = 'cell'; // سيتم تحديد الفئة لاحقاً عند توليد الشكل
+                innerCell.id = `inner-cell-${cellNumber}`;
+                
+                // إضافة رقم المربع
+                const innerCellNumber = document.createElement('div');
+                innerCellNumber.className = 'cell-number';
+                innerCellNumber.textContent = cellNumber;
+                innerCell.appendChild(innerCellNumber);
+                
+                innerBoardGrid.appendChild(innerCell);
+            }
+        }
+
+        // التحقق من اختيار جميع أشكال الأمهات
+        function checkAllMothersSelected() {
+            for (let i = 1; i <= 4; i++) {
+                const cell = document.getElementById(`secondary-cell-${i}`);
+                const figureContainer = cell.querySelector('.figure-container');
+                
+                if (!figureContainer) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // استخراج نمط النقاط من عنصر الشكل
+        function extractPatternFromFigure(figureContainer) {
+            const dotRows = figureContainer.querySelectorAll('.dot-row');
+            let pattern = [];
+            
+            dotRows.forEach(row => {
+                const dots = row.querySelectorAll('.dot');
+                pattern.push(dots.length);
+            });
+            
+            return pattern;
+        }
+
+        // عرض شكل في خلية محددة
+        function displayFigure(cellNumber, pattern) {
+            const cell = document.getElementById(`secondary-cell-${cellNumber}`);
+            const oldFigure = cell.querySelector('.figure-container');
+            
+            if (oldFigure) {
+                oldFigure.remove();
+            }
+            
+            // البحث عن مؤشر الشكل المطابق للنمط
+            const figureIndex = findFigureIndexByPattern(pattern);
+            
+            // إنشاء عنصر الشكل الجديد
+            const figureElement = createFigureElement(pattern, figureIndex);
+            cell.appendChild(figureElement);
+            
+            // تحديث فئة العنصر للخلية
+            if (figureIndex !== -1) {
+                cell.className = `cell ${geomancyFigures[figureIndex].element}-element`;
+            } else {
+                // إذا لم يتم العثور على الشكل، استخدم الفئة بناءً على النمط
+                cell.className = `cell ${getElementClassByPattern(pattern)}`;
+            }
+        }
+
+        // ضرب نقطتين معاً وفقاً لقواعد علم الرمل
+        function multiplyDots(dots1, dots2) {
+            // نقطة × نقطة = نقطتان
+            if (dots1 === 1 && dots2 === 1) {
+                return 2;
+            }
+            // نقطة × نقطتان = نقطة
+            else if ((dots1 === 1 && dots2 === 2) || (dots1 === 2 && dots2 === 1)) {
+                return 1;
+            }
+            // نقطتان × نقطتان = نقطتان
+            else if (dots1 === 2 && dots2 === 2) {
+                return 2;
+            }
+            
+            // حالة غير متوقعة
+            console.error("قيم غير صالحة للضرب:", dots1, dots2);
+            return 1;
+        }
+
+        // ضرب شكلين معاً
+        function multiplyFigures(figure1, figure2) {
+            let resultPattern = [];
+            
+            for (let i = 0; i < 4; i++) {
+                resultPattern.push(multiplyDots(figure1[i], figure2[i]));
+            }
+            
+            return resultPattern;
+        }
+
+        // توليد أشكال البنات (5-8)
+        function generateDaughterFigures() {
+            // التحقق من وجود أشكال الأمهات
+            for (let i = 1; i <= 4; i++) {
+                const cell = document.getElementById(`secondary-cell-${i}`);
+                const figureContainer = cell.querySelector('.figure-container');
+                
+                if (!figureContainer) {
+                    console.error(`الشكل ${i} غير موجود`);
+                    return;
+                }
+            }
+            
+            // استخراج أنماط الأشكال
+            const figure1Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-1').querySelector('.figure-container'));
+            const figure2Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-2').querySelector('.figure-container'));
+            const figure3Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-3').querySelector('.figure-container'));
+            const figure4Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-4').querySelector('.figure-container'));
+            
+            // توليد أشكال البنات وفقاً للقواعد
+            // المربع 5 = الصف الأول من المربعات 1-4
+            const figure5Pattern = [figure1Pattern[0], figure2Pattern[0], figure3Pattern[0], figure4Pattern[0]];
+            
+            // المربع 6 = الصف الثاني من المربعات 1-4
+            const figure6Pattern = [figure1Pattern[1], figure2Pattern[1], figure3Pattern[1], figure4Pattern[1]];
+            
+            // المربع 7 = الصف الثالث من المربعات 1-4
+            const figure7Pattern = [figure1Pattern[2], figure2Pattern[2], figure3Pattern[2], figure4Pattern[2]];
+            
+            // المربع 8 = الصف الرابع من المربعات 1-4
+            const figure8Pattern = [figure1Pattern[3], figure2Pattern[3], figure3Pattern[3], figure4Pattern[3]];
+            
+            // عرض أشكال البنات في المربعات 5-8
+            displayFigure(5, figure5Pattern);
+            displayFigure(6, figure6Pattern);
+            displayFigure(7, figure7Pattern);
+            displayFigure(8, figure8Pattern);
+        }
+
+        // توليد أشكال الحفيدات (9-12)
+        function generateGranddaughterFigures() {
+            // التحقق من وجود أشكال البنات
+            for (let i = 5; i <= 8; i++) {
+                const cell = document.getElementById(`secondary-cell-${i}`);
+                const figureContainer = cell.querySelector('.figure-container');
+                
+                if (!figureContainer) {
+                    console.error(`الشكل ${i} غير موجود`);
+                    return;
+                }
+            }
+            
+            // استخراج أنماط الأشكال
+            const figure1Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-1').querySelector('.figure-container'));
+            const figure2Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-2').querySelector('.figure-container'));
+            const figure3Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-3').querySelector('.figure-container'));
+            const figure4Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-4').querySelector('.figure-container'));
+            const figure5Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-5').querySelector('.figure-container'));
+            const figure6Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-6').querySelector('.figure-container'));
+            const figure7Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-7').querySelector('.figure-container'));
+            const figure8Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-8').querySelector('.figure-container'));
+            
+            // ضرب الأشكال وفقاً للقواعد
+            // المربع 9 = ضرب المربع 1 مع المربع 2
+            const figure9Pattern = multiplyFigures(figure1Pattern, figure2Pattern);
+            
+            // المربع 10 = ضرب المربع 3 مع المربع 4
+            const figure10Pattern = multiplyFigures(figure3Pattern, figure4Pattern);
+            
+            // المربع 11 = ضرب المربع 5 مع المربع 6
+            const figure11Pattern = multiplyFigures(figure5Pattern, figure6Pattern);
+            
+            // المربع 12 = ضرب المربع 7 مع المربع 8
+            const figure12Pattern = multiplyFigures(figure7Pattern, figure8Pattern);
+            
+            // عرض أشكال الحفيدات في المربعات 9-12
+            displayFigure(9, figure9Pattern);
+            displayFigure(10, figure10Pattern);
+            displayFigure(11, figure11Pattern);
+            displayFigure(12, figure12Pattern);
+        }
+
+        // توليد أشكال الزوائد (13-16)
+        function generateExtraFigures() {
+            // التحقق من وجود أشكال الحفيدات
+            for (let i = 9; i <= 12; i++) {
+                const cell = document.getElementById(`secondary-cell-${i}`);
+                const figureContainer = cell.querySelector('.figure-container');
+                
+                if (!figureContainer) {
+                    console.error(`الشكل ${i} غير موجود`);
+                    return;
+                }
+            }
+            
+            // استخراج أنماط الأشكال
+            const figure1Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-1').querySelector('.figure-container'));
+            const figure9Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-9').querySelector('.figure-container'));
+            const figure10Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-10').querySelector('.figure-container'));
+            const figure11Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-11').querySelector('.figure-container'));
+            const figure12Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-12').querySelector('.figure-container'));
+            
+            // ضرب الأشكال وفقاً للقواعد
+            // المربع 13 = ضرب المربع 9 مع المربع 10
+            const figure13Pattern = multiplyFigures(figure9Pattern, figure10Pattern);
+            
+            // المربع 14 = ضرب المربع 11 مع المربع 12
+            const figure14Pattern = multiplyFigures(figure11Pattern, figure12Pattern);
+            
+            // عرض أشكال الزوائد في المربعات 13-14
+            displayFigure(13, figure13Pattern);
+            displayFigure(14, figure14Pattern);
+            
+            // استخراج أنماط الأشكال الجديدة
+            setTimeout(() => {
+                const figure13Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-13').querySelector('.figure-container'));
+                const figure14Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-14').querySelector('.figure-container'));
+                
+                // المربع 15 = ضرب المربع 13 مع المربع 14
+                const figure15Pattern = multiplyFigures(figure13Pattern, figure14Pattern);
+                
+                // عرض الشكل 15
+                displayFigure(15, figure15Pattern);
+                
+                // استخراج نمط الشكل 15 الجديد
+                setTimeout(() => {
+                    const figure15Pattern = extractPatternFromFigure(document.getElementById('secondary-cell-15').querySelector('.figure-container'));
+                    
+                    // المربع 16 = ضرب المربع 15 مع المربع 1
+                    const figure16Pattern = multiplyFigures(figure15Pattern, figure1Pattern);
+                    
+                    // عرض الشكل 16
+                    displayFigure(16, figure16Pattern);
+                    
+                    // تحديث الإحصائيات بعد اكتمال جميع الأشكال
+                    setTimeout(() => {
+                        updateStatistics();
+                        
+                        // إظهار زر حفظ اللوحات كصورة
+                        document.getElementById('save-as-image').style.display = 'block';
+                    }, 100);
+                }, 100);
+            }, 100);
+        }
+
+        // توليد جميع الأشكال
+        function generateAllFigures() {
+            // التحقق من وجود أشكال في مربعات الأمهات
+            if (!checkAllMothersSelected()) {
+                return; // لم تكتمل أشكال الأمهات بعد
+            }
+            
+            // تسجيل التاريخ والوقت عند اكتمال أشكال الأمهات إذا لم يتم تسجيله من قبل
+            if (!capturedDateTime) {
+                capturedDateTime = getCurrentDateTime();
+                document.getElementById('date-time-display').textContent = capturedDateTime;
+            }
+            
+            // 1. توليد أشكال البنات (5-8)
+            generateDaughterFigures();
+            
+            // التأكد من وجود أشكال البنات قبل المتابعة
+            setTimeout(() => {
+                // 2. توليد أشكال الحفيدات (9-12)
+                generateGranddaughterFigures();
+                
+                // التأكد من وجود أشكال الحفيدات قبل المتابعة
+                setTimeout(() => {
+                    // 3. توليد أشكال الزوائد (13-16)
+                    generateExtraFigures();
+                }, 100);
+            }, 100);
+        }
+
+        // دالة للبحث عن مؤشر الشكل بناءً على النمط
+        function findFigureIndexByPattern(pattern) {
+            for (let i = 0; i < geomancyFigures.length; i++) {
+                const figPattern = geomancyFigures[i].pattern;
+                if (patternsEqual(figPattern, pattern)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        // دالة للتحقق من تطابق نمطين
+        function patternsEqual(pattern1, pattern2) {
+            if (pattern1.length !== pattern2.length) {
+                return false;
+            }
+            
+            for (let i = 0; i < pattern1.length; i++) {
+                if (pattern1[i] !== pattern2[i]) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // توليد لوحة باطن الرمل
+        function generateInnerBoard() {
+            // التحقق من اكتمال اللوحة الفرعية
+            for (let i = 1; i <= 16; i++) {
+                const cell = document.getElementById(`secondary-cell-${i}`);
+                const figureContainer = cell.querySelector('.figure-container');
+                
+                if (!figureContainer) {
+                    alert('يجب اكتمال جميع أشكال اللوحة الفرعية أولاً');
+                    return;
+                }
+            }
+            
+            // توليد أشكال لوحة باطن الرمل
+            for (let i = 1; i <= 16; i++) {
+                const mainCell = document.getElementById(`main-cell-${i}`);
+                const secondaryCell = document.getElementById(`secondary-cell-${i}`);
+                const innerCell = document.getElementById(`inner-cell-${i}`);
+                
+                // استخراج أنماط الأشكال من اللوحتين الرئيسية والفرعية
+                const mainPattern = extractPatternFromFigure(mainCell.querySelector('.figure-container'));
+                const secondaryPattern = extractPatternFromFigure(secondaryCell.querySelector('.figure-container'));
+                
+                // ضرب الشكلين معاً للحصول على شكل باطن الرمل
+                const innerPattern = multiplyFigures(mainPattern, secondaryPattern);
+                
+                // إزالة الشكل السابق إن وجد
+                const oldFigure = innerCell.querySelector('.figure-container');
+                if (oldFigure) {
+                    oldFigure.remove();
+                }
+                
+                // البحث عن مؤشر الشكل المطابق للنمط
+                const figureIndex = findFigureIndexByPattern(innerPattern);
+                
+                // إنشاء شكل جديد في لوحة باطن الرمل
+                const newFigureElement = createFigureElement(innerPattern, figureIndex);
+                innerCell.appendChild(newFigureElement);
+                
+                // تحديث فئة العنصر للخلية
+                if (figureIndex !== -1) {
+                    innerCell.className = `cell ${geomancyFigures[figureIndex].element}-element`;
+                } else {
+                    // إذا لم يتم العثور على الشكل، استخدم الفئة بناءً على النمط
+                    innerCell.className = `cell ${getElementClassByPattern(innerPattern)}`;
+                }
+            }
+            
+            console.log("تم توليد لوحة باطن الرمل بنجاح");
+        }
+
+        // حساب مجموع النقاط في شكل واحد
+        function countDotsInFigure(pattern) {
+            let singleDots = 0;
+            let doubleDots = 0;
+            
+            for (let i = 0; i < pattern.length; i++) {
+                if (pattern[i] === 1) {
+                    singleDots++;
+                } else if (pattern[i] === 2) {
+                    doubleDots++;
+                }
+            }
+            
+            return { singleDots, doubleDots };
+        }
+
+        // تحديث إحصائيات اللوحة الفرعية
+        function updateStatistics() {
+            // إظهار جدول الإحصائيات
+            document.getElementById('statistics-container').style.display = 'block';
+            
+            // متغيرات لتخزين الإحصائيات
+            let elementPoints = {
+                fire: 0,
+                air: 0,
+                water: 0,
+                earth: 0
+            };
+            
+            let elementFigures = {
+                fire: 0,
+                air: 0,
+                water: 0,
+                earth: 0
+            };
+            
+            let figureTypes = {
+                outer: 0,
+                inner: 0,
+                mobile: 0,
+                stable: 0
+            };
+            
+            let fortuneTypes = {
+                fortunate: 0,
+                unfortunate: 0,
+                'mixed-fortunate': 0,
+                'mixed-unfortunate': 0,
+                mixed: 0
+            };
+            
+            let truthTypes = {
+                truthful: 0,
+                false: 0
+            };
+            
+            let genderTypes = {
+                masculine: 0,
+                feminine: 0,
+                'neutral-masculine': 0,
+                'neutral-feminine': 0
+            };
+            
+            let planetTypes = {
+                sun: 0,
+                moon: 0,
+                mars: 0,
+                mercury: 0,
+                jupiter: 0,
+                venus: 0,
+                saturn: 0,
+                head: 0,
+                tail: 0
+            };
+            
+            // متغيرات لتخزين مجموع النقاط
+            let totalSingleDots = 0;
+            let totalDoubleDots = 0;
+            
+            // حساب عدد نقاط العناصر المفردة ومجموع النقاط
+            for (let i = 1; i <= 16; i++) {
+                const cell = document.getElementById(`secondary-cell-${i}`);
+                const figureContainer = cell.querySelector('.figure-container');
+                
+                if (figureContainer) {
+                    // استخراج نمط الشكل
+                    const pattern = extractPatternFromFigure(figureContainer);
+                    
+                    // حساب مجموع النقاط في الشكل
+                    const { singleDots, doubleDots } = countDotsInFigure(pattern);
+                    totalSingleDots += singleDots;
+                    totalDoubleDots += doubleDots;
+                    
+                    // إذا كان هناك مؤشر للشكل، استخدمه للإحصائيات الأخرى
+                    if (figureContainer.dataset.figureIndex) {
+                        const figureIndex = parseInt(figureContainer.dataset.figureIndex);
+                        const figure = geomancyFigures[figureIndex];
+                        
+                        // حساب نقاط العناصر (النقاط المفردة فقط)
+                        for (let j = 0; j < figure.pattern.length; j++) {
+                            if (figure.pattern[j] === 1) {
+                                // زيادة عدد النقاط المفردة للعنصر المناسب
+                                if (j === 0) elementPoints.fire++;
+                                else if (j === 1) elementPoints.air++;
+                                else if (j === 2) elementPoints.water++;
+                                else if (j === 3) elementPoints.earth++;
+                            }
+                        }
+                        
+                        // حساب عدد الأشكال حسب العناصر
+                        elementFigures[figure.element]++;
+                        
+                        // حساب أنواع الأشكال
+                        figureTypes[figure.type]++;
+                        
+                        // حساب أنواع السعد والنحس
+                        if (figure.fortune === 'mixed') {
+                            fortuneTypes.mixed++;
+                        } else {
+                            fortuneTypes[figure.fortune]++;
+                        }
+                        
+                        // حساب أنواع الصدق والكذب
+                        truthTypes[figure.truth]++;
+                        
+                        // حساب أنواع الجنس
+                        if (figure.gender === 'neutral-masculine' || figure.gender === 'neutral-feminine') {
+                            // الأشكال الخنثى
+                            genderTypes[figure.gender]++;
+                        } else {
+                            genderTypes[figure.gender]++;
+                        }
+                        
+                        // حساب أنواع الكواكب
+                        planetTypes[figure.planet]++;
+                    }
+                }
+            }
+            
+            // تحديث عناصر واجهة المستخدم بالإحصائيات
+            
+            // مجموع النقاط
+            document.getElementById('total-single-dots').textContent = totalSingleDots;
+            document.getElementById('total-double-dots').textContent = totalDoubleDots;
+            // تصحيح حساب المجموع الكلي للنقاط: النقاط المفردة + (النقاط المزدوجة × 2)
+            document.getElementById('total-all-dots').textContent = totalSingleDots + (totalDoubleDots * 2);
+            
+            // نقاط العناصر
+            document.getElementById('fire-points').textContent = elementPoints.fire;
+            document.getElementById('air-points').textContent = elementPoints.air;
+            document.getElementById('water-points').textContent = elementPoints.water;
+            document.getElementById('earth-points').textContent = elementPoints.earth;
+            
+            // أشكال العناصر
+            document.getElementById('fire-figures').textContent = elementFigures.fire;
+            document.getElementById('air-figures').textContent = elementFigures.air;
+            document.getElementById('water-figures').textContent = elementFigures.water;
+            document.getElementById('earth-figures').textContent = elementFigures.earth;
+            
+            // أنواع الأشكال
+            document.getElementById('outer-figures').textContent = figureTypes.outer;
+            document.getElementById('inner-figures').textContent = figureTypes.inner;
+            document.getElementById('mobile-figures').textContent = figureTypes.mobile;
+            document.getElementById('stable-figures').textContent = figureTypes.stable;
+            
+            // السعد والنحس
+            document.getElementById('fortunate-figures').textContent = fortuneTypes.fortunate;
+            document.getElementById('unfortunate-figures').textContent = fortuneTypes.unfortunate;
+            document.getElementById('mixed-fortunate-figures').textContent = fortuneTypes['mixed-fortunate'];
+            document.getElementById('mixed-unfortunate-figures').textContent = fortuneTypes['mixed-unfortunate'];
+            document.getElementById('mixed-figures').textContent = fortuneTypes.mixed;
+            
+            // الصدق والكذب
+            document.getElementById('truthful-figures').textContent = truthTypes.truthful;
+            document.getElementById('false-figures').textContent = truthTypes.false;
+            
+            // الجنس
+            document.getElementById('masculine-figures').textContent = genderTypes.masculine;
+            document.getElementById('feminine-figures').textContent = genderTypes.feminine;
+            document.getElementById('neutral-figures').textContent = genderTypes['neutral-masculine'] + genderTypes['neutral-feminine'];
+            
+            // الكواكب
+            document.getElementById('sun-figures').textContent = planetTypes.sun;
+            document.getElementById('moon-figures').textContent = planetTypes.moon;
+            document.getElementById('mars-figures').textContent = planetTypes.mars;
+            document.getElementById('mercury-figures').textContent = planetTypes.mercury;
+            document.getElementById('jupiter-figures').textContent = planetTypes.jupiter;
+            document.getElementById('venus-figures').textContent = planetTypes.venus;
+            document.getElementById('saturn-figures').textContent = planetTypes.saturn;
+            document.getElementById('head-figures').textContent = planetTypes.head;
+            document.getElementById('tail-figures').textContent = planetTypes.tail;
+        }
+        
+        // الحصول على التاريخ والوقت الحاليين بتنسيق مناسب
+        function getCurrentDateTime() {
+            const now = new Date();
+            
+            // أسماء أيام الأسبوع بالعربية
+            const arabicDays = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+            const dayName = arabicDays[now.getDay()];
+            
+            // تنسيق التاريخ والوقت
+            const day = now.getDate();
+            const month = now.getMonth() + 1;
+            const year = now.getFullYear();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            
+            return `${dayName} ${day}/${month}/${year} - ${hours}:${minutes}:${seconds}`;
+        }
+        
+        // حفظ اللوحات والإحصائيات كصورة
+        function saveAsImage() {
+            // التحقق من اكتمال اللوحات
+            if (!document.querySelector('#inner-board .figure-container')) {
+                alert('يجب توليد لوحة باطن الرمل أولاً');
+                return;
+            }
+            
+            // إنشاء عنصر div مؤقت لتجميع اللوحات والإحصائيات
+            const tempDiv = document.createElement('div');
+            tempDiv.style.backgroundColor = 'white';
+            tempDiv.style.padding = '20px';
+            tempDiv.style.width = '100%';
+            
+            // إضافة السؤال والتاريخ
+            const questionContainer = document.querySelector('.question-container').cloneNode(true);
+            tempDiv.appendChild(questionContainer);
+            
+            // إضافة اللوحات
+            const boardsContainer = document.querySelector('.boards-container').cloneNode(true);
+            tempDiv.appendChild(boardsContainer);
+            
+            // إضافة الإحصائيات
+            const statisticsContainer = document.querySelector('.statistics-container').cloneNode(true);
+            statisticsContainer.style.display = 'block';
+            tempDiv.appendChild(statisticsContainer);
+            
+            // إضافة حقوق الملكية
+            const copyright = document.querySelector('.copyright').cloneNode(true);
+            tempDiv.appendChild(copyright);
+            
+            // إضافة العنصر المؤقت إلى الصفحة (مخفي)
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            // استخدام html2canvas لتحويل العنصر إلى صورة
+            html2canvas(tempDiv, {
+                allowTaint: true,
+                useCORS: true,
+                scale: 2 // جودة أعلى
+            }).then(canvas => {
+                // تحويل الصورة إلى URL
+                const imageURL = canvas.toDataURL('image/png');
+                
+                // إنشاء رابط تنزيل
+                const downloadLink = document.createElement('a');
+                downloadLink.href = imageURL;
+                
+                // استخدام السؤال كاسم للملف إذا كان موجوداً، وإلا استخدام التاريخ
+                const question = document.getElementById('question-input').value.trim();
+                const fileName = question ? 
+                    `لوحة_الرمل_${question.substring(0, 30).replace(/[^\w\s]/gi, '')}.png` : 
+                    `لوحة_الرمل_${new Date().toISOString().slice(0, 10)}.png`;
+                
+                downloadLink.download = fileName;
+                
+                // النقر على الرابط لبدء التنزيل
+                downloadLink.click();
+                
+                // إزالة العنصر المؤقت
+                document.body.removeChild(tempDiv);
+            });
+        }
+
+        // تنفيذ إنشاء اللوحات عند تحميل الصفحة
+        window.onload = function() {
+            // إضافة الأسماء العربية للأشكال
+            addArabicNamesToFigures();
+            
+            // إنشاء اللوحات
+            createBoards();
+            
+            // إضافة حدث النقر على زر توليد لوحة باطن الرمل
+            document.getElementById('generate-inner-board').addEventListener('click', generateInnerBoard);
+            
+            // إضافة حدث النقر على زر حفظ اللوحات كصورة
+            document.getElementById('save-as-image').addEventListener('click', saveAsImage);
+        };
+    </script>
+</body>
+</html>
